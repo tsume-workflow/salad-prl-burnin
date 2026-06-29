@@ -44,6 +44,12 @@ if [[ -n "${WILDRIG_EXTRA_ARGS:-}" ]]; then
 fi
 
 echo "[burnin] command=${cmd[*]/$wallet/<wallet>}"
+
+if [[ "$burnin_seconds" == "0" || "$burnin_seconds" == "continuous" || "$burnin_seconds" == "infinite" ]]; then
+  echo "[burnin] continuous mode"
+  exec "${cmd[@]}"
+fi
+
 set +e
 timeout --foreground "$burnin_seconds" "${cmd[@]}"
 exit_code=$?
