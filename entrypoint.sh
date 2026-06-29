@@ -9,6 +9,7 @@ algo="${PRL_ALGO:-pearlhash}"
 burnin_seconds="${BURNIN_SECONDS:-1200}"
 gpu_temp_limit="${GPU_TEMP_LIMIT:-81}"
 print_time="${PRINT_TIME:-30}"
+post_burnin_action="${POST_BURNIN_ACTION:-idle}"
 
 echo "[burnin] starting"
 echo "[burnin] pool=${pool_url}"
@@ -50,6 +51,11 @@ set -e
 
 if [[ "$exit_code" -eq 124 ]]; then
   echo "[burnin] completed after ${burnin_seconds}s"
+  if [[ "$post_burnin_action" == "exit" ]]; then
+    exit 0
+  fi
+  echo "[burnin] idling until container group is stopped"
+  sleep infinity
   exit 0
 fi
 

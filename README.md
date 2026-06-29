@@ -7,7 +7,7 @@ Estado de seguranca:
 - O CLI usa `GET/POST` de leitura para disponibilidade e gera plano em dry-run por padrao.
 - `create`, `start`, `stop` e `delete` exigem `--execute --confirm <container_group_name>`.
 - O payload de criacao usa `autostart_policy=false` e `restart_policy=never`.
-- O container tambem encerra sozinho com `BURNIN_SECONDS` e trata timeout como sucesso para evitar restart.
+- O WildRig encerra com `BURNIN_SECONDS`; depois disso o container fica idle por padrao, aguardando `stop/delete` externo do container group.
 - Nenhum `SALAD_API_KEY` fica dentro da imagem ou dos arquivos deste diretorio.
 - Planos salvos em `plans/*.json` podem conter a wallet no payload de ambiente; a pasta esta no `.gitignore`.
 
@@ -23,20 +23,20 @@ Fontes usadas:
 Build local:
 
 ```bash
-docker build -t salad-prl-burnin:0.1.2 .
+docker build -t salad-prl-burnin:0.1.3 .
 ```
 
 Para Salad, a imagem precisa estar em um registry acessivel pela Salad:
 
 ```bash
-docker tag salad-prl-burnin:0.1.2 REGISTRY/salad-prl-burnin:0.1.2
-docker push REGISTRY/salad-prl-burnin:0.1.2
+docker tag salad-prl-burnin:0.1.3 REGISTRY/salad-prl-burnin:0.1.3
+docker push REGISTRY/salad-prl-burnin:0.1.3
 ```
 
 Depois salve o nome:
 
 ```bash
-export SALAD_BURNIN_IMAGE=REGISTRY/salad-prl-burnin:0.1.2
+export SALAD_BURNIN_IMAGE=REGISTRY/salad-prl-burnin:0.1.3
 ```
 
 ## Burn-in

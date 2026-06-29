@@ -22,20 +22,20 @@ Fora do escopo da Wave:
 4. Retornar a imagem:
 
 ```text
-ghcr.io/<owner>/salad-prl-burnin:0.1.2
+ghcr.io/<owner>/salad-prl-burnin:0.1.3
 ```
 
 ## Build manual alternativo
 
 ```bash
-docker build -t ghcr.io/<owner>/salad-prl-burnin:0.1.2 .
-docker push ghcr.io/<owner>/salad-prl-burnin:0.1.2
+docker build -t ghcr.io/<owner>/salad-prl-burnin:0.1.3 .
+docker push ghcr.io/<owner>/salad-prl-burnin:0.1.3
 ```
 
 ## Validacao esperada
 
 ```bash
-docker run --rm ghcr.io/<owner>/salad-prl-burnin:0.1.2 --help
+docker run --rm ghcr.io/<owner>/salad-prl-burnin:0.1.3 --help
 ```
 
 Esse comando deve falhar pedindo `PRL_WALLET`, porque a wallet entra so em runtime na Salad.
