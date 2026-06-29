@@ -1,0 +1,4 @@
+plans/*
+results/*
+!plans/.gitkeep
+!results/.gitkeep
