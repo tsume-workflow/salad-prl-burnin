@@ -1,6 +1,6 @@
 FROM nvidia/cuda:12.8.1-base-ubuntu22.04
 
-ARG WILDRIG_VERSION=0.48.9
+ARG WILDRIG_VERSION=0.49.1
 ARG WILDRIG_URL=https://github.com/andru-kun/wildrig-multi/releases/download/${WILDRIG_VERSION}/wildrig-multi-linux-${WILDRIG_VERSION}.tar.gz
 
 RUN apt-get update \
