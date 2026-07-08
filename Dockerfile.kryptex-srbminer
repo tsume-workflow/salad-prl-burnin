@@ -16,6 +16,7 @@ RUN mkdir -p /opt/srbminer \
   && rm -rf /tmp/srbminer.tar.gz /tmp/${SRBMINER_ARCHIVE}
 
 COPY kryptex-srbminer-entrypoint.sh /usr/local/bin/kryptex-srbminer-entrypoint
-RUN chmod +x /usr/local/bin/kryptex-srbminer-entrypoint
+COPY miner-telemetry-sampler.sh /usr/local/bin/miner-telemetry-sampler
+RUN chmod +x /usr/local/bin/kryptex-srbminer-entrypoint /usr/local/bin/miner-telemetry-sampler
 
 ENTRYPOINT ["/usr/local/bin/kryptex-srbminer-entrypoint"]

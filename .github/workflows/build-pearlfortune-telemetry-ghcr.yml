@@ -1,4 +1,4 @@
-name: Build Kryptex SRBMiner
+name: Build PearlFortune Telemetry
 
 on:
   workflow_dispatch:
@@ -6,10 +6,10 @@ on:
     branches:
       - main
     paths:
-      - Dockerfile.kryptex-srbminer
-      - kryptex-srbminer-entrypoint.sh
+      - Dockerfile.pearlfortune-telemetry
       - miner-telemetry-sampler.sh
-      - .github/workflows/build-kryptex-srbminer-ghcr.yml
+      - pearlfortune-telemetry-entrypoint.sh
+      - .github/workflows/build-pearlfortune-telemetry-ghcr.yml
 
 permissions:
   contents: read
@@ -36,16 +36,16 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/salad-prl-kryptex-srbminer
+          images: ghcr.io/${{ github.repository_owner }}/salad-prl-pearlfortune-miner
           tags: |
-            type=raw,value=v3.4.3-salad
+            type=raw,value=v1.2.4-telemetry
             type=sha,prefix=sha-
 
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: Dockerfile.kryptex-srbminer
+          file: Dockerfile.pearlfortune-telemetry
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

@@ -1,6 +1,6 @@
 FROM nvidia/cuda:12.8.1-base-ubuntu22.04
 
-ARG WILDRIG_VERSION=0.48.9
+ARG WILDRIG_VERSION=0.49.2
 ARG WILDRIG_URL=https://github.com/andru-kun/wildrig-multi/releases/download/${WILDRIG_VERSION}/wildrig-multi-linux-${WILDRIG_VERSION}.tar.gz
 
 RUN apt-get update \
@@ -14,6 +14,7 @@ RUN mkdir -p /opt/wildrig \
   && rm /tmp/wildrig.tar.gz
 
 COPY entrypoint.sh /usr/local/bin/prl-burnin-entrypoint
-RUN chmod +x /usr/local/bin/prl-burnin-entrypoint
+COPY miner-telemetry-sampler.sh /usr/local/bin/miner-telemetry-sampler
+RUN chmod +x /usr/local/bin/prl-burnin-entrypoint /usr/local/bin/miner-telemetry-sampler
 
 ENTRYPOINT ["/usr/local/bin/prl-burnin-entrypoint"]

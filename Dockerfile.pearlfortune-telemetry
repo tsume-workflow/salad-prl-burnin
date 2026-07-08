@@ -1,0 +1,7 @@
+FROM pearlfortune/pearl-miner:v1.2.4
+
+COPY miner-telemetry-sampler.sh /usr/local/bin/miner-telemetry-sampler
+COPY pearlfortune-telemetry-entrypoint.sh /usr/local/bin/pearlfortune-telemetry-entrypoint
+RUN chmod +x /usr/local/bin/miner-telemetry-sampler /usr/local/bin/pearlfortune-telemetry-entrypoint
+
+ENTRYPOINT ["/usr/local/bin/pearlfortune-telemetry-entrypoint"]

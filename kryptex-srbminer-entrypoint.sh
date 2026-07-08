@@ -14,6 +14,13 @@ gpu_off_temp="${GPU_OFF_TEMP:-81}"
 post_burnin_action="${POST_BURNIN_ACTION:-idle}"
 job_timeout="${SRBMINER_JOB_TIMEOUT:-120}"
 log_file="${SRBMINER_LOG_FILE:-/tmp/kryptex-srbminer.log}"
+api_port="${SRBMINER_API_PORT:-21550}"
+sampler="${MINER_TELEMETRY_SAMPLER:-/usr/local/bin/miner-telemetry-sampler}"
+
+export MINER_KIND="${MINER_KIND:-srbminer}"
+export MINER_VERSION="${MINER_VERSION:-3.4.3}"
+export MINER_API_ENABLED="${MINER_API_ENABLED:-1}"
+export MINER_API_URL="${MINER_API_URL:-http://127.0.0.1:${api_port}}"
 
 log_prefixed() {
   local prefix="$1"
@@ -49,6 +56,19 @@ echo "[kryptex] list_devices_status=${list_devices_status}"
 mkdir -p "$(dirname "$log_file")"
 touch "$log_file"
 
+sampler_pid=""
+if [[ -x "$sampler" && "${MINER_TELEMETRY_ENABLED:-1}" != "0" ]]; then
+  "$sampler" &
+  sampler_pid=$!
+fi
+
+cleanup() {
+  if [[ -n "$sampler_pid" ]]; then
+    kill "$sampler_pid" >/dev/null 2>&1 || true
+  fi
+}
+trap cleanup EXIT INT TERM
+
 cmd=(
   "$srbminer"
   --disable-cpu
@@ -59,6 +79,7 @@ cmd=(
   --gpu-intensity "$gpu_intensity"
   --gpu-off-temperature "$gpu_off_temp"
   --api-enable
+  --api-port "$api_port"
   --api-rig-name "$worker"
   --extended-log
   --job-timeout "$job_timeout"

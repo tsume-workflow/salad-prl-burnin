@@ -10,6 +10,11 @@ burnin_seconds="${BURNIN_SECONDS:-1200}"
 gpu_temp_limit="${GPU_TEMP_LIMIT:-81}"
 print_time="${PRINT_TIME:-30}"
 post_burnin_action="${POST_BURNIN_ACTION:-idle}"
+sampler="${MINER_TELEMETRY_SAMPLER:-/usr/local/bin/miner-telemetry-sampler}"
+
+export MINER_KIND="${MINER_KIND:-wildrig}"
+export MINER_VERSION="${MINER_VERSION:-${WILDRIG_VERSION:-0.49.2}}"
+export MINER_API_ENABLED="${MINER_API_ENABLED:-0}"
 
 echo "[burnin] starting"
 echo "[burnin] pool=${pool_url}"
@@ -23,6 +28,19 @@ if command -v nvidia-smi >/dev/null 2>&1; then
 else
   echo "[burnin] nvidia-smi not found"
 fi
+
+sampler_pid=""
+if [[ -x "$sampler" && "${MINER_TELEMETRY_ENABLED:-1}" != "0" ]]; then
+  "$sampler" &
+  sampler_pid=$!
+fi
+
+cleanup() {
+  if [[ -n "$sampler_pid" ]]; then
+    kill "$sampler_pid" >/dev/null 2>&1 || true
+  fi
+}
+trap cleanup EXIT INT TERM
 
 cmd=(
   "$wildrig"
@@ -47,7 +65,10 @@ echo "[burnin] command=${cmd[*]/$wallet/<wallet>}"
 
 if [[ "$burnin_seconds" == "0" || "$burnin_seconds" == "continuous" || "$burnin_seconds" == "infinite" ]]; then
   echo "[burnin] continuous mode"
-  exec "${cmd[@]}"
+  "${cmd[@]}"
+  exit_code=$?
+  echo "[burnin] miner_exit_code=${exit_code}"
+  exit "$exit_code"
 fi
 
 set +e
