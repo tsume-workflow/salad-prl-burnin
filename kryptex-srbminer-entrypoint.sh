@@ -30,7 +30,8 @@ cmd=(
   --disable-cpu
   --algorithm "$algo"
   --pool "$pool_url"
-  --wallet "${wallet}.${worker}"
+  --wallet "$wallet"
+  --worker "$worker"
   --gpu-id "$gpu_id"
   --gpu-intensity "$gpu_intensity"
   --gpu-off-temperature "$gpu_off_temp"
