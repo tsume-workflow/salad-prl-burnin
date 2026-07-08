@@ -1,8 +1,9 @@
 FROM nvidia/cuda:12.8.1-base-ubuntu22.04
 
-ARG SRBMINER_VERSION=3.4.3
-ARG SRBMINER_ARCHIVE=SRBMiner-Multi-3-4-3
-ARG SRBMINER_URL=https://github.com/doktor83/SRBMiner-Multi/releases/download/3.4.3/SRBMiner-Multi-3-4-3-Linux.tar.gz
+ARG SRBMINER_VERSION=3.4.4
+ARG SRBMINER_ARCHIVE=SRBMiner-Multi-3-4-4
+ARG SRBMINER_URL=https://github.com/doktor83/SRBMiner-Multi/releases/download/3.4.4/SRBMiner-Multi-3-4-4-Linux.tar.gz
+ARG SRBMINER_SHA256=a0a0ba6093ed2eaadf5406de6654dab5ba8fca2c43adcb46c73616c4f3fa6c0a
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends ca-certificates curl libcurl4 libgomp1 ocl-icd-libopencl1 procps tar wget \
@@ -10,6 +11,7 @@ RUN apt-get update \
 
 RUN mkdir -p /opt/srbminer \
   && curl -fsSL "$SRBMINER_URL" -o /tmp/srbminer.tar.gz \
+  && echo "${SRBMINER_SHA256}  /tmp/srbminer.tar.gz" | sha256sum -c - \
   && tar -xzf /tmp/srbminer.tar.gz -C /tmp \
   && cp -a /tmp/${SRBMINER_ARCHIVE}/. /opt/srbminer/ \
   && chmod +x /opt/srbminer/SRBMiner-MULTI \

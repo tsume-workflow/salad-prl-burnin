@@ -18,7 +18,7 @@ api_port="${SRBMINER_API_PORT:-21550}"
 sampler="${MINER_TELEMETRY_SAMPLER:-/usr/local/bin/miner-telemetry-sampler}"
 
 export MINER_KIND="${MINER_KIND:-srbminer}"
-export MINER_VERSION="${MINER_VERSION:-3.4.3}"
+export MINER_VERSION="${MINER_VERSION:-3.4.4}"
 export MINER_API_ENABLED="${MINER_API_ENABLED:-1}"
 export MINER_API_URL="${MINER_API_URL:-http://127.0.0.1:${api_port}}"
 
