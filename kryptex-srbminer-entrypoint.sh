@@ -5,6 +5,7 @@ srbminer="${SRBMINER_BIN:-/opt/srbminer/SRBMiner-MULTI}"
 wallet="${PRL_WALLET:?PRL_WALLET is required}"
 pool_url="${PRL_POOL_URL:-prl.kryptex.network:7048}"
 worker="${PRL_WORKER:-kx-${HOSTNAME:-worker}}"
+wallet_worker="${wallet}.${worker}"
 algo="${PRL_ALGO:-pearlhash}"
 burnin_seconds="${BURNIN_SECONDS:-0}"
 gpu_id="${GPU_ID:-0}"
@@ -30,8 +31,7 @@ cmd=(
   --disable-cpu
   --algorithm "$algo"
   --pool "$pool_url"
-  --wallet "$wallet"
-  --worker "$worker"
+  --wallet "$wallet_worker"
   --gpu-id "$gpu_id"
   --gpu-intensity "$gpu_intensity"
   --gpu-off-temperature "$gpu_off_temp"
@@ -49,7 +49,7 @@ if [[ -n "${SRBMINER_EXTRA_ARGS:-}" ]]; then
   cmd+=("${extra_args[@]}")
 fi
 
-echo "[kryptex] command=${cmd[*]/$wallet/<wallet>}"
+echo "[kryptex] command=${cmd[*]/$wallet_worker/<wallet.worker>}"
 
 if [[ "$burnin_seconds" == "0" || "$burnin_seconds" == "continuous" || "$burnin_seconds" == "infinite" ]]; then
   echo "[kryptex] continuous mode"
