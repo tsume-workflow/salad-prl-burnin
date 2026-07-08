@@ -12,19 +12,42 @@ gpu_id="${GPU_ID:-0}"
 gpu_intensity="${GPU_INTENSITY:-16}"
 gpu_off_temp="${GPU_OFF_TEMP:-81}"
 post_burnin_action="${POST_BURNIN_ACTION:-idle}"
+job_timeout="${SRBMINER_JOB_TIMEOUT:-120}"
+log_file="${SRBMINER_LOG_FILE:-/tmp/kryptex-srbminer.log}"
+
+log_prefixed() {
+  local prefix="$1"
+  sed -u "s/^/${prefix} /"
+}
 
 echo "[kryptex] starting"
 echo "[kryptex] pool=${pool_url}"
 echo "[kryptex] worker=${worker}"
 echo "[kryptex] algo=${algo}"
 echo "[kryptex] burnin_seconds=${burnin_seconds}"
-echo "[kryptex] srbminer=$("$srbminer" --version 2>&1 | tr '\n' ' ')"
+echo "[kryptex] srbminer=${srbminer}"
+ls -l "$srbminer" 2>&1 | log_prefixed "[kryptex][binary]" || true
+
+if command -v ldd >/dev/null 2>&1; then
+  ldd "$srbminer" 2>&1 | log_prefixed "[kryptex][ldd]" || true
+else
+  echo "[kryptex] ldd not found"
+fi
 
 if command -v nvidia-smi >/dev/null 2>&1; then
-  nvidia-smi || true
+  nvidia-smi 2>&1 | log_prefixed "[kryptex][nvidia-smi]" || true
 else
   echo "[kryptex] nvidia-smi not found"
 fi
+
+set +e
+timeout 20 "$srbminer" --list-devices 2>&1 | log_prefixed "[kryptex][devices]"
+list_devices_status=${PIPESTATUS[0]}
+set -e
+echo "[kryptex] list_devices_status=${list_devices_status}"
+
+mkdir -p "$(dirname "$log_file")"
+touch "$log_file"
 
 cmd=(
   "$srbminer"
@@ -37,6 +60,11 @@ cmd=(
   --gpu-off-temperature "$gpu_off_temp"
   --api-enable
   --api-rig-name "$worker"
+  --extended-log
+  --forced-tls12
+  --job-timeout "$job_timeout"
+  --log-file "$log_file"
+  --log-file-mode 0
 )
 
 if [[ "${PRL_POOL_TLS:-0}" == "1" || "${PRL_POOL_TLS:-0}" == "true" ]]; then
@@ -53,12 +81,17 @@ echo "[kryptex] command=${cmd[*]/$wallet_worker/<wallet.worker>}"
 
 if [[ "$burnin_seconds" == "0" || "$burnin_seconds" == "continuous" || "$burnin_seconds" == "infinite" ]]; then
   echo "[kryptex] continuous mode"
-  exec "${cmd[@]}"
+  set +e
+  "${cmd[@]}" 2>&1 | tee -a "$log_file"
+  exit_code=${PIPESTATUS[0]}
+  set -e
+  echo "[kryptex] miner_exit_code=${exit_code}"
+  exit "$exit_code"
 fi
 
 set +e
-timeout --foreground "$burnin_seconds" "${cmd[@]}"
-exit_code=$?
+timeout --foreground "$burnin_seconds" "${cmd[@]}" 2>&1 | tee -a "$log_file"
+exit_code=${PIPESTATUS[0]}
 set -e
 
 if [[ "$exit_code" -eq 124 ]]; then
