@@ -1,0 +1,21 @@
+FROM nvidia/cuda:12.8.1-base-ubuntu22.04
+
+ARG SRBMINER_VERSION=3.4.3
+ARG SRBMINER_ARCHIVE=SRBMiner-Multi-3-4-3
+ARG SRBMINER_URL=https://github.com/doktor83/SRBMiner-Multi/releases/download/3.4.3/SRBMiner-Multi-3-4-3-Linux.tar.gz
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates curl libcurl4 libgomp1 ocl-icd-libopencl1 procps tar \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /opt/srbminer \
+  && curl -fsSL "$SRBMINER_URL" -o /tmp/srbminer.tar.gz \
+  && tar -xzf /tmp/srbminer.tar.gz -C /tmp \
+  && cp -a /tmp/${SRBMINER_ARCHIVE}/. /opt/srbminer/ \
+  && chmod +x /opt/srbminer/SRBMiner-MULTI \
+  && rm -rf /tmp/srbminer.tar.gz /tmp/${SRBMINER_ARCHIVE}
+
+COPY kryptex-srbminer-entrypoint.sh /usr/local/bin/kryptex-srbminer-entrypoint
+RUN chmod +x /usr/local/bin/kryptex-srbminer-entrypoint
+
+ENTRYPOINT ["/usr/local/bin/kryptex-srbminer-entrypoint"]
