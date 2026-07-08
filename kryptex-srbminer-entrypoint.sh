@@ -61,7 +61,6 @@ cmd=(
   --api-enable
   --api-rig-name "$worker"
   --extended-log
-  --forced-tls12
   --job-timeout "$job_timeout"
   --log-file "$log_file"
   --log-file-mode 0
