@@ -26,7 +26,7 @@ printf '{"event":"miner_start","schema":"miner_telemetry.v1","arm":"%s","pool":"
   "${PRL_WORKER:-}" \
   "${MINER_VERSION:-v1.2.4}"
 
-if [ "${1:-}" = "/app/entrypoint.sh" ]; then
+if [ "${1:-}" = "/usr/local/bin/pearlfortune-telemetry-entrypoint" ] || [ "${1:-}" = "/app/entrypoint.sh" ]; then
   shift
 fi
 
