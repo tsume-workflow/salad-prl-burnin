@@ -36,7 +36,7 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository_owner }}/salad-prl-peakminer
           tags: |
-            type=raw,value=v1.0.13-salad
+            type=raw,value=v1.0.14-salad
             type=sha,prefix=sha-
 
       - name: Build and push
