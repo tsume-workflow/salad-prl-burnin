@@ -13,7 +13,7 @@ post_burnin_action="${POST_BURNIN_ACTION:-idle}"
 sampler="${MINER_TELEMETRY_SAMPLER:-/usr/local/bin/miner-telemetry-sampler}"
 
 export MINER_KIND="${MINER_KIND:-wildrig}"
-export MINER_VERSION="${MINER_VERSION:-${WILDRIG_VERSION:-0.49.2}}"
+export MINER_VERSION="${MINER_VERSION:-${WILDRIG_VERSION:-0.49.3}}"
 export MINER_API_ENABLED="${MINER_API_ENABLED:-0}"
 
 echo "[burnin] starting"
