@@ -1,18 +1,21 @@
 FROM ubuntu:24.04
 
-ARG PEAKMINER_VERSION=1.0.14
-ARG PEAKMINER_SHA256=49ffc87629132ca77e1243672a040774d5787e18b2823b9e16b71dda466b6607
+ARG PEAKMINER_VERSION=1.0.17
+ARG PEAKMINER_SHA256=538d805ef896495a9fc759d8ae0504db7e6b4ee8c4d19fdfe0c70635ba32a3c1
 ARG PEAKMINER_URL=https://github.com/peakminer/peakminer/releases/download/v${PEAKMINER_VERSION}/peakminer-${PEAKMINER_VERSION}-linux-x86_64
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends ca-certificates curl \
+  && apt-get install -y --no-install-recommends ca-certificates curl bash \
   && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /opt/peakminer \
-  && curl -fsSL "$PEAKMINER_URL" -o /opt/peakminer/peakminer \
-  && echo "${PEAKMINER_SHA256}  /opt/peakminer/peakminer" | sha256sum -c - \
-  && chmod +x /opt/peakminer/peakminer
+ENV PEAKMINER_VERSION="${PEAKMINER_VERSION}" \
+    PEAKMINER_SHA256="${PEAKMINER_SHA256}" \
+    PEAKMINER_URL="${PEAKMINER_URL}" \
+    PEAKMINER_INSTALL_DIR="/opt/peakminer"
 
 ENV PATH="/opt/peakminer:${PATH}"
 
-ENTRYPOINT ["peakminer"]
+COPY peakminer-entrypoint.sh /usr/local/bin/peakminer-entrypoint
+RUN chmod +x /usr/local/bin/peakminer-entrypoint
+
+ENTRYPOINT ["peakminer-entrypoint"]
