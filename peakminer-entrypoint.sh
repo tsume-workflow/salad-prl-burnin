@@ -47,6 +47,12 @@ else
   log_event "miner_cached" "$miner"
 fi
 
+case "${1:-}" in
+  peakminer-entrypoint|/usr/local/bin/peakminer-entrypoint)
+    shift
+    ;;
+esac
+
 if [[ "${1:-}" == "peakminer" ]]; then
   shift
 fi
