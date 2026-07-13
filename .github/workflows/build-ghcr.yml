@@ -1,4 +1,4 @@
-name: Build Salad PRL Burn-in
+name: Build PearlHash WildRig
 
 on:
   workflow_dispatch:
@@ -38,7 +38,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/salad-prl-burnin
+          images: ghcr.io/${{ github.repository_owner }}/salad-prl-pearlhash-wildrig
           tags: |
             type=raw,value=v0.49.3-salad
             type=sha,prefix=sha-
