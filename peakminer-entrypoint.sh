@@ -8,16 +8,43 @@ install_dir="${PEAKMINER_INSTALL_DIR:-/opt/peakminer}"
 miner="${install_dir}/peakminer"
 sampler="${MINER_TELEMETRY_SAMPLER:-/usr/local/bin/miner-telemetry-sampler}"
 
+json_escape() {
+  printf '%s' "${1:-}" | sed 's/\\/\\\\/g; s/"/\\"/g'
+}
+
+log_event() {
+  local event="$1"
+  local message="${2:-}"
+  printf '{"event":"%s","schema":"miner_telemetry.v1","miner":"peakminer","miner_version":"%s","source":"container_stdout","message":"%s"}\n' \
+    "$(json_escape "$event")" \
+    "$(json_escape "$version")" \
+    "$(json_escape "$message")"
+}
+
+fail() {
+  log_event "miner_boot_error" "$1"
+  printf '[peakminer-entrypoint] ERROR: %s\n' "$1" >&2
+  exit 1
+}
+
+log_event "miner_boot" "entrypoint started"
 mkdir -p "$install_dir"
 
 if [[ ! -x "$miner" ]]; then
   tmp="$(mktemp "${install_dir}/peakminer.XXXXXX")"
   trap 'rm -f "$tmp"' EXIT
-  curl -fsSL "$url" -o "$tmp"
-  echo "${sha256}  ${tmp}" | sha256sum -c -
+  log_event "miner_download_start" "$url"
+  curl -fL --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 120 "$url" -o "$tmp" \
+    || fail "download failed: ${url}"
+  log_event "miner_checksum_start" "$sha256"
+  echo "${sha256}  ${tmp}" | sha256sum -c - \
+    || fail "checksum failed: ${url}"
   chmod +x "$tmp"
   mv "$tmp" "$miner"
   trap - EXIT
+  log_event "miner_download_complete" "$miner"
+else
+  log_event "miner_cached" "$miner"
 fi
 
 if [[ "${1:-}" == "peakminer" ]]; then
@@ -64,8 +91,16 @@ terminate() {
 trap terminate INT TERM
 trap cleanup EXIT
 
+case "${1:-}" in
+  --version|-V|-v|--help|-h)
+    log_event "miner_exec" "$miner $*"
+    exec "$miner" "$@"
+    ;;
+esac
+
 start_sampler "${1:-}"
 
+log_event "miner_exec" "$miner $*"
 "$miner" "$@" &
 miner_pid=$!
 wait "$miner_pid"
