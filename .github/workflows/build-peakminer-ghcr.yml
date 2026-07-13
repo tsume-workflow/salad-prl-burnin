@@ -8,6 +8,7 @@ on:
     paths:
       - Dockerfile.peakminer
       - peakminer-entrypoint.sh
+      - miner-telemetry-sampler.sh
       - .github/workflows/build-peakminer-ghcr.yml
 
 permissions:

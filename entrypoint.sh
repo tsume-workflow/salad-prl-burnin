@@ -22,6 +22,11 @@ echo "[burnin] worker=${worker}"
 echo "[burnin] algo=${algo}"
 echo "[burnin] burnin_seconds=${burnin_seconds}"
 echo "[burnin] wildrig=$("$wildrig" --version 2>&1 | tr '\n' ' ')"
+printf '{"event":"miner_start","schema":"miner_telemetry.v1","arm":"%s","pool":"%s","worker":"%s","miner":"wildrig","miner_version":"%s","source":"container_stdout"}\n' \
+  "${AB_ARM:-}" \
+  "${AB_POOL:-${PRL_POOL_ARM:-}}" \
+  "$worker" \
+  "${MINER_VERSION:-${WILDRIG_VERSION:-0.49.3}}"
 
 if command -v nvidia-smi >/dev/null 2>&1; then
   nvidia-smi || true

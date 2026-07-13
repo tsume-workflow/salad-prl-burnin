@@ -22,7 +22,7 @@ trap cleanup EXIT INT TERM
 
 printf '{"event":"miner_start","schema":"miner_telemetry.v1","arm":"%s","pool":"%s","worker":"%s","miner":"pearlfortune-official","miner_version":"%s","source":"container_stdout"}\n' \
   "${AB_ARM:-}" \
-  "${AB_POOL:-}" \
+  "${AB_POOL:-${PRL_POOL_ARM:-}}" \
   "${PRL_WORKER:-}" \
   "${MINER_VERSION:-v1.2.4}"
 

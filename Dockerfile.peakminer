@@ -5,7 +5,7 @@ ARG PEAKMINER_SHA256=538d805ef896495a9fc759d8ae0504db7e6b4ee8c4d19fdfe0c70635ba3
 ARG PEAKMINER_URL=https://github.com/peakminer/peakminer/releases/download/v${PEAKMINER_VERSION}/peakminer-${PEAKMINER_VERSION}-linux-x86_64
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends ca-certificates curl bash \
+  && apt-get install -y --no-install-recommends ca-certificates curl bash jq \
   && rm -rf /var/lib/apt/lists/*
 
 ENV PEAKMINER_VERSION="${PEAKMINER_VERSION}" \
@@ -16,6 +16,7 @@ ENV PEAKMINER_VERSION="${PEAKMINER_VERSION}" \
 ENV PATH="/opt/peakminer:${PATH}"
 
 COPY peakminer-entrypoint.sh /usr/local/bin/peakminer-entrypoint
-RUN chmod +x /usr/local/bin/peakminer-entrypoint
+COPY miner-telemetry-sampler.sh /usr/local/bin/miner-telemetry-sampler
+RUN chmod +x /usr/local/bin/peakminer-entrypoint /usr/local/bin/miner-telemetry-sampler
 
 ENTRYPOINT ["peakminer-entrypoint"]
