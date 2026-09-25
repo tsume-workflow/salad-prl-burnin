@@ -41,7 +41,7 @@ if [ "${MINER_TELEMETRY_ENABLED:-1}" != 0 ] && [ -x /usr/local/bin/miner-telemet
 fi
 printf '{"event":"miner_start","schema":"miner_telemetry.v1","arm":"%s","pool":"%s","worker":"%s","miner":"wildrig","miner_version":"0.51.2","source":"container_stdout"}\n' \
   "${AB_ARM:-}" "${AB_POOL:-pearlhash}" "$worker"
-"$bin" --algo "$algo" --url "$pool" --user "$wallet.$worker" --pass x \
+"$bin" --algo "$algo" --url "$pool" --user "$wallet" --worker "$worker" --pass x \
   --opencl-platforms nvidia --gpu-list "$gpu_list" \
   --gpu-temp-limit "${GPU_TEMP_LIMIT:-81}" --print-time "${PRINT_TIME:-30}" --no-color <&3 &
 miner_pid=$!

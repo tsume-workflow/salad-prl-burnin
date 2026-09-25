@@ -51,6 +51,11 @@ jobs:
               grep -Fxq fifo /tmp/wildrig-stdin-kind
               grep -Fxq -- --gpu-list /tmp/wildrig-args
               grep -Fxq -- 0 /tmp/wildrig-args
+              grep -Fxq -- --user /tmp/wildrig-args
+              grep -Fxq -- dummy /tmp/wildrig-args
+              grep -Fxq -- --worker /tmp/wildrig-args
+              grep -Fxq -- smoke /tmp/wildrig-args
+              ! grep -Fxq -- dummy.smoke /tmp/wildrig-args
               ! grep -Fq -- --opencl-devices /tmp/wildrig-args
               grep -Fq "\"event\":\"miner_start\"" /tmp/wildrig-out
               grep -Fq "\"event\":\"miner_telemetry\"" /tmp/wildrig-out
