@@ -1,0 +1,14 @@
+# WildRig 0.51.2 continuous PearlHash multipool image; independent of legacy 0.49.3 workflow.
+FROM nvidia/cuda:12.8.1-base-ubuntu22.04@sha256:001469ea0f3dec85a1ca929aeea3b58ae369d4c11228b10aec1f642bb6ca7a6f AS fetch
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl tar coreutils && rm -rf /var/lib/apt/lists/*
+ARG WILDRIG_ARCHIVE_SHA256=da1463dcd3444687c7b29b1351e5bd2cb6b7fe204254f12cfac9796a17615c37
+RUN curl -fsSL --retry 3 --connect-timeout 15 https://github.com/andru-kun/wildrig-multi/releases/download/0.51.2/wildrig-multi-linux-0.51.2.tar.gz -o /tmp/wildrig.tar.gz && echo "$WILDRIG_ARCHIVE_SHA256  /tmp/wildrig.tar.gz" | sha256sum -c - && mkdir -p /tmp/wildrig /out && tar -xzf /tmp/wildrig.tar.gz -C /tmp/wildrig --no-same-owner && bin=$(find /tmp/wildrig -type f -name wildrig-multi -print -quit) && test -n "$bin" && install -m 0555 "$bin" /out/wildrig-multi && echo 'fa4956ca57e153090904ef8bc328c8b2964eab178acc508d541ad6e338de2df9  /out/wildrig-multi' | sha256sum -c -
+FROM nvidia/cuda:12.8.1-base-ubuntu22.04@sha256:001469ea0f3dec85a1ca929aeea3b58ae369d4c11228b10aec1f642bb6ca7a6f
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates coreutils curl jq libstdc++6 ocl-icd-libopencl1 procps && rm -rf /var/lib/apt/lists/*
+COPY --from=fetch /out/wildrig-multi /opt/wildrig/wildrig-multi
+COPY miner-telemetry-sampler.sh /usr/local/bin/miner-telemetry-sampler
+COPY wildrig-0512-production-entrypoint.sh /usr/local/bin/prl-burnin-entrypoint
+RUN chmod 0555 /opt/wildrig/wildrig-multi /usr/local/bin/miner-telemetry-sampler /usr/local/bin/prl-burnin-entrypoint && echo 'fa4956ca57e153090904ef8bc328c8b2964eab178acc508d541ad6e338de2df9  /opt/wildrig/wildrig-multi' | sha256sum -c -
+USER 10001:10001
+WORKDIR /tmp
+ENTRYPOINT ["/usr/local/bin/prl-burnin-entrypoint"]
