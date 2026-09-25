@@ -48,12 +48,13 @@ jobs:
               set -e
               test "$code" -eq 124
               test -f /tmp/wildrig-term
+              grep -Fxq fifo /tmp/wildrig-stdin-kind
               grep -Fxq -- --gpu-list /tmp/wildrig-args
               grep -Fxq -- 0 /tmp/wildrig-args
               ! grep -Fq -- --opencl-devices /tmp/wildrig-args
               grep -Fq "\"event\":\"miner_start\"" /tmp/wildrig-out
               grep -Fq "\"event\":\"miner_telemetry\"" /tmp/wildrig-out
-              echo "fake flags, continuous mode, telemetry and TERM: ok"
+              echo "FIFO stdin, fake flags, continuous mode, telemetry and TERM: ok"
             '
       - name: Publish only after smoke passes
         shell: bash

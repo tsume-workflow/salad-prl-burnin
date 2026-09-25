@@ -11,10 +11,19 @@ case "${BURNIN_SECONDS:-0}" in 0|continuous|infinite) ;; *) echo 'production ima
 bin=/opt/wildrig/wildrig-multi
 if [ "${WILDRIG_TEST_MODE:-0}" = 1 ]; then bin=${WILDRIG_TEST_BINARY:?WILDRIG_TEST_BINARY required}; fi
 if [ ! -x "$bin" ]; then echo 'miner unavailable' >&2; exit 65; fi
+# POSIX sh redirects a background job's inherited stdin to /dev/null (UV_FILE).
+# WildRig/libuv calls uv_read_start on stdin and aborts on UV_FILE. Keep a
+# readable FIFO open for the miner for its entire lifetime instead.
+stdin_dir=$(mktemp -d /tmp/wildrig-stdin.XXXXXX)
+mkfifo "$stdin_dir/pipe"
+exec 3<>"$stdin_dir/pipe"
 export MINER_KIND=wildrig MINER_VERSION=0.51.2 MINER_API_ENABLED=0
 sampler_pid=; miner_pid=
 cleanup() {
   if [ -n "$sampler_pid" ]; then kill "$sampler_pid" >/dev/null 2>&1 || true; fi
+  exec 3>&-
+  rm -f "$stdin_dir/pipe"
+  rmdir "$stdin_dir"
 }
 forward_term() {
   trap - INT TERM
@@ -34,7 +43,7 @@ printf '{"event":"miner_start","schema":"miner_telemetry.v1","arm":"%s","pool":"
   "${AB_ARM:-}" "${AB_POOL:-pearlhash}" "$worker"
 "$bin" --algo "$algo" --url "$pool" --user "$wallet.$worker" --pass x \
   --opencl-platforms nvidia --gpu-list "$gpu_list" \
-  --gpu-temp-limit "${GPU_TEMP_LIMIT:-81}" --print-time "${PRINT_TIME:-30}" --no-color &
+  --gpu-temp-limit "${GPU_TEMP_LIMIT:-81}" --print-time "${PRINT_TIME:-30}" --no-color <&3 &
 miner_pid=$!
 set +e
 wait "$miner_pid"
