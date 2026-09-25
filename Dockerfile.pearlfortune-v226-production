@@ -1,0 +1,15 @@
+# PearlFortune v2.2.6 continuous multipool image; not the 900s canary image.
+FROM ubuntu:24.04@sha256:008173c23f95b170204355c12626cb5a965d779a7e1283b09e9cffbb1bf33ca3 AS fetch
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl && rm -rf /var/lib/apt/lists/*
+ARG PF_SHA256=a5682c28d95097c0f117e76f14304582456343f7e42ad095313251f8486333b2
+RUN curl -fsSL --retry 3 --connect-timeout 15 https://github.com/pearlfortune/pearl-miner/releases/download/v2.2.6/pearlfortune-v2.2.6.tar.gz -o /tmp/pf.tar.gz && echo "$PF_SHA256  /tmp/pf.tar.gz" | sha256sum -c - && mkdir /tmp/pf && tar -xzf /tmp/pf.tar.gz -C /tmp/pf --no-same-owner pearlfortune/miner-cuda12 pearlfortune/miner-cuda13
+FROM ubuntu:24.04@sha256:008173c23f95b170204355c12626cb5a965d779a7e1283b09e9cffbb1bf33ca3
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates coreutils libstdc++6 curl jq && rm -rf /var/lib/apt/lists/*
+COPY --from=fetch /tmp/pf/pearlfortune/miner-cuda12 /opt/pearlfortune/miner-cuda12
+COPY --from=fetch /tmp/pf/pearlfortune/miner-cuda13 /opt/pearlfortune/miner-cuda13
+COPY miner-telemetry-sampler.sh /usr/local/bin/miner-telemetry-sampler
+COPY pearlfortune-v226-production-entrypoint.sh /usr/local/bin/pearlfortune-telemetry-entrypoint
+RUN chmod 0555 /opt/pearlfortune/miner-cuda12 /opt/pearlfortune/miner-cuda13 /usr/local/bin/miner-telemetry-sampler /usr/local/bin/pearlfortune-telemetry-entrypoint && echo "bc91cf623e62bb59552908c786d68e45e3b28d37290197e6c2823a8d0955628d  /opt/pearlfortune/miner-cuda12" | sha256sum -c - && echo "17ff552e12b050f8ccf7bb21c0499a2b6fffd3cd8ea9c256f65dabf42ec63818  /opt/pearlfortune/miner-cuda13" | sha256sum -c -
+USER 10001:10001
+WORKDIR /tmp
+ENTRYPOINT ["/usr/local/bin/pearlfortune-telemetry-entrypoint"]

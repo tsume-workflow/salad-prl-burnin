@@ -1,0 +1,50 @@
+name: Build PearlFortune 2.2.6 Production
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-smoke-push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Define immutable candidate tag
+        shell: bash
+        run: |
+          echo "IMAGE=ghcr.io/${{ github.repository_owner }}/salad-prl-pearlfortune-miner:v2.2.6-${{ github.sha }}" >> "$GITHUB_ENV"
+      - name: Build locally on Actions runner (no push yet)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.pearlfortune-v226-production
+          load: true
+          push: false
+          tags: ${{ env.IMAGE }}
+      - name: Smoke hashes and continuous wrapper TERM without GPU or real wallet
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm --entrypoint sha256sum "$IMAGE" /opt/pearlfortune/miner-cuda12 /opt/pearlfortune/miner-cuda13 | tee /tmp/pf-hashes
+          grep -Fx "bc91cf623e62bb59552908c786d68e45e3b28d37290197e6c2823a8d0955628d  /opt/pearlfortune/miner-cuda12" /tmp/pf-hashes
+          grep -Fx "17ff552e12b050f8ccf7bb21c0499a2b6fffd3cd8ea9c256f65dabf42ec63818  /opt/pearlfortune/miner-cuda13" /tmp/pf-hashes
+          docker run --rm --entrypoint sh -e PF_TEST_MODE=1 -e PF_TEST_BINARY=/tmp/fake -e MINER_TELEMETRY_ENABLED=0 "$IMAGE" -c 'printf "#!/bin/sh\nexec sleep 30\n" > /tmp/fake; chmod 700 /tmp/fake; timeout --signal=TERM --kill-after=3s 2s /usr/local/bin/pearlfortune-telemetry-entrypoint --proxy pool.example:443 --address dummy --worker smoke -gpu; code=$?; test "$code" -eq 124'
+      - name: Publish candidate to GHCR only after smoke passes
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker push "$IMAGE"
+          digest=$(docker buildx imagetools inspect "$IMAGE" | sed -n 's/^Digest:[[:space:]]*//p' | head -1)
+          [[ "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]
+          echo "IMAGE_DIGEST=${IMAGE%%:*}@$digest" >> "$GITHUB_ENV"
+          echo "Published: ${IMAGE%%:*}@$digest" >> "$GITHUB_STEP_SUMMARY"
