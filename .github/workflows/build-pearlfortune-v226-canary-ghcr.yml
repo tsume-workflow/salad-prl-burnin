@@ -1,0 +1,49 @@
+name: Build PearlFortune 2.2.6 Canary
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-smoke-push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Define immutable candidate tag
+        shell: bash
+        run: |
+          echo "IMAGE=ghcr.io/${{ github.repository_owner }}/salad-prl-pearlfortune-canary:v2.2.6-${{ github.sha }}" >> "$GITHUB_ENV"
+      - name: Build locally on Actions runner (no push yet)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.pearlfortune-v226-canary
+          load: true
+          push: false
+          tags: ${{ env.IMAGE }}
+      - name: Smoke both binary versions and timeout without GPU or wallet
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm --entrypoint /opt/pearlfortune/miner-cuda12 "$IMAGE" --version | grep -F '2.2.6'
+          docker run --rm --entrypoint /opt/pearlfortune/miner-cuda13 "$IMAGE" --version | grep -F '2.2.6'
+          docker run --rm --entrypoint sh -e PRL_WALLET=dummy -e PRL_WORKER=smoke -e BURNIN_SECONDS=1 -e PF_TEST_MODE=1 -e PF_TEST_BINARY=/tmp/fake "$IMAGE" -c 'printf "#!/bin/sh\nsleep 30\n" > /tmp/fake; chmod 700 /tmp/fake; exec /usr/local/bin/pearlfortune-v226-canary-entrypoint' | grep -Fx 'canary_hash_time_complete'
+      - name: Publish candidate to GHCR only after smoke passes
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker push "$IMAGE"
+          digest=$(docker buildx imagetools inspect "$IMAGE" | sed -n 's/^Digest:[[:space:]]*//p' | head -1)
+          [[ "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]
+          echo "IMAGE_DIGEST=${IMAGE%%:*}@$digest" >> "$GITHUB_ENV"
+          echo "Published: ${IMAGE%%:*}@$digest" >> "$GITHUB_STEP_SUMMARY"
