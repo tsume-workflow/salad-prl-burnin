@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 COPY --from=fetch /tmp/pf/pearlfortune/miner-cuda12 /opt/pearlfortune/miner-cuda12
 COPY --from=fetch /tmp/pf/pearlfortune/miner-cuda13 /opt/pearlfortune/miner-cuda13
 COPY pearlfortune-v226-canary-entrypoint.sh /usr/local/bin/pearlfortune-v226-canary-entrypoint
-RUN chmod 0555 /opt/pearlfortune/miner-cuda12 /opt/pearlfortune/miner-cuda13 /usr/local/bin/pearlfortune-v226-canary-entrypoint && /opt/pearlfortune/miner-cuda12 --version | grep -F 2.2.6 && /opt/pearlfortune/miner-cuda13 --version | grep -F 2.2.6
+RUN chmod 0555 /opt/pearlfortune/miner-cuda12 /opt/pearlfortune/miner-cuda13 /usr/local/bin/pearlfortune-v226-canary-entrypoint && echo "bc91cf623e62bb59552908c786d68e45e3b28d37290197e6c2823a8d0955628d  /opt/pearlfortune/miner-cuda12" | sha256sum -c - && echo "17ff552e12b050f8ccf7bb21c0499a2b6fffd3cd8ea9c256f65dabf42ec63818  /opt/pearlfortune/miner-cuda13" | sha256sum -c -
 USER 10001:10001
 WORKDIR /tmp
 ENTRYPOINT ["/usr/local/bin/pearlfortune-v226-canary-entrypoint"]

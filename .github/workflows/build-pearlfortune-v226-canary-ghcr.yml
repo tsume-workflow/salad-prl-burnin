@@ -31,12 +31,13 @@ jobs:
           load: true
           push: false
           tags: ${{ env.IMAGE }}
-      - name: Smoke both binary versions and timeout without GPU or wallet
+      - name: Smoke both binary hashes and timeout without GPU or wallet
         shell: bash
         run: |
           set -euo pipefail
-          docker run --rm --entrypoint /opt/pearlfortune/miner-cuda12 "$IMAGE" --version | grep -F '2.2.6'
-          docker run --rm --entrypoint /opt/pearlfortune/miner-cuda13 "$IMAGE" --version | grep -F '2.2.6'
+          docker run --rm --entrypoint sha256sum "$IMAGE" /opt/pearlfortune/miner-cuda12 /opt/pearlfortune/miner-cuda13 | tee /tmp/pf-hashes
+          grep -Fx "bc91cf623e62bb59552908c786d68e45e3b28d37290197e6c2823a8d0955628d  /opt/pearlfortune/miner-cuda12" /tmp/pf-hashes
+          grep -Fx "17ff552e12b050f8ccf7bb21c0499a2b6fffd3cd8ea9c256f65dabf42ec63818  /opt/pearlfortune/miner-cuda13" /tmp/pf-hashes
           docker run --rm --entrypoint sh -e PRL_WALLET=dummy -e PRL_WORKER=smoke -e BURNIN_SECONDS=1 -e PF_TEST_MODE=1 -e PF_TEST_BINARY=/tmp/fake "$IMAGE" -c 'printf "#!/bin/sh\nsleep 30\n" > /tmp/fake; chmod 700 /tmp/fake; exec /usr/local/bin/pearlfortune-v226-canary-entrypoint' | grep -Fx 'canary_hash_time_complete'
       - name: Publish candidate to GHCR only after smoke passes
         shell: bash
