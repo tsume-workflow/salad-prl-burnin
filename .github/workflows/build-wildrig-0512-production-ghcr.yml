@@ -1,4 +1,4 @@
-name: Build PearlHash WildRig 0.51.2 Production
+name: Build PearlHash WildRig 0.51.3 Canary
 
 on:
   workflow_dispatch:
@@ -22,12 +22,12 @@ jobs:
       - name: Define immutable candidate tag
         shell: bash
         run: |
-          echo "IMAGE=ghcr.io/${{ github.repository_owner }}/salad-prl-pearlhash-wildrig:v0.51.2-production-${{ github.sha }}" >> "$GITHUB_ENV"
+          echo "IMAGE=ghcr.io/${{ github.repository_owner }}/salad-prl-pearlhash-wildrig:v0.51.3-canary-${{ github.sha }}" >> "$GITHUB_ENV"
       - name: Build locally without push
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: Dockerfile.wildrig-0512-production
+          file: Dockerfile.wildrig-0513-canary
           load: true
           push: false
           tags: ${{ env.IMAGE }}
@@ -36,7 +36,7 @@ jobs:
         run: |
           set -euo pipefail
           docker run --rm --entrypoint sha256sum "$IMAGE" /opt/wildrig/wildrig-multi | tee /tmp/wildrig-hash
-          grep -Fx 'fa4956ca57e153090904ef8bc328c8b2964eab178acc508d541ad6e338de2df9  /opt/wildrig/wildrig-multi' /tmp/wildrig-hash
+          grep -Fx '43c69d341fadbcdba3553b1b22d3a8847ae4d4fabf66c4833515e3e33f2a1244  /opt/wildrig/wildrig-multi' /tmp/wildrig-hash
           docker run --rm --entrypoint sh -v "$PWD/tests/wildrig-0512-fake-miner.sh:/tmp/fake:ro" \
             -e WILDRIG_TEST_MODE=1 -e WILDRIG_TEST_BINARY=/tmp/fake \
             -e PRL_WALLET=dummy -e PRL_POOL_URL=pool.invalid:9000 -e PRL_WORKER=smoke \
